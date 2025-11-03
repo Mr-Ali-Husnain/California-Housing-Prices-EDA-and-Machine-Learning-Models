@@ -7,6 +7,14 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, confusion_matrix, ConfusionMatrixDisplay
 import pickle
 import os
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, AdaBoostRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.svm import SVR
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import cross_val_score
+import pandas as pd
+import numpy as np
 
 
 # ======================== #
@@ -30,7 +38,7 @@ class DataPreprocessor:
 
 # ======================== #
 #   Model Selection
-# ======================== #
+# ======================== #  
 class ModelSelector:
     def __init__(self, X_train, X_test, y_train, y_test):
         self.X_train = X_train
@@ -39,11 +47,40 @@ class ModelSelector:
         self.y_test = y_test
 
     def compare_models(self):
-        print("\nComparing Models with LazyPredict...")
-        reg = LazyRegressor(verbose=0, ignore_warnings=True)
-        models, predictions = reg.fit(self.X_train, self.X_test, self.y_train, self.y_test)
-        print(models)
-        return models
+        print("\n🔍 Comparing Selected Regressor Models...\n")
+
+        # ✅ Define a smaller set of good models
+        models = {
+            "Linear Regression": LinearRegression(),
+            "Ridge": Ridge(),
+            "Lasso": Lasso(),
+            "ElasticNet": ElasticNet(),
+            "Decision Tree": DecisionTreeRegressor(),
+            "Random Forest": RandomForestRegressor(random_state=42),
+            "Gradient Boosting": GradientBoostingRegressor(random_state=42),
+            "AdaBoost": AdaBoostRegressor(random_state=42),
+            "Support Vector Regressor": SVR(),
+            "K-Nearest Neighbors": KNeighborsRegressor()
+        }
+
+        results = []
+
+        # ✅ Train & evaluate each model
+        for name, model in models.items():
+            model.fit(self.X_train, self.y_train)
+            score = model.score(self.X_test, self.y_test)
+            cv_score = np.mean(cross_val_score(model, self.X_train, self.y_train, cv=3))
+            results.append({
+                "Model": name,
+                "R² Test Score": round(score, 3),
+                "Cross-Val Score": round(cv_score, 3)
+            })
+
+        # ✅ Display results in clean table
+        results_df = pd.DataFrame(results).sort_values(by="R² Test Score", ascending=False)
+        print(results_df)
+        print("\n✅ Model comparison complete — fewer models, faster execution!")
+        return results_df
 
 # ======================== #
 #   Model Training
