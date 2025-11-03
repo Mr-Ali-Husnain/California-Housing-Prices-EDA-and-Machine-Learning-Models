@@ -1,0 +1,11 @@
+# Core Libraries
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+joblib
+pickle-mixin
+
+# For notebook use
+jupyter
